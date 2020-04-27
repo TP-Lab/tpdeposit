@@ -17,16 +17,14 @@
 #include <eosio.token/eosio.token.hpp>
 #include <vector>
 
-#define TEST 1
+//#define TEST 1
 #if TEST
 #define EOS_CONTRACT "eosio.token"
+#define USDT_CONTRACT "tethertether"
 #else
 #define EOS_CONTRACT "eosio.token"
+#define USDT_CONTRACT "tethertether"
 #endif
-#define STOP 1
-
-#define START 0
-#define TYPE_DEPOSIT "deposit"
 
 using namespace eosio;
 using namespace std;
@@ -65,9 +63,27 @@ namespace tptpdeposit {
         void deldeposit(uint64_t id);
 
     private:
+        static std::vector <std::string> &
+        split(const std::string &s, const std::string delim, std::vector <std::string> &result) {
+            size_t last = 0;
+            size_t index = s.find_first_of(delim, last);
+            while (index != std::string::npos) {
+                result.push_back(s.substr(last, index - last));
+                last = index + 1;
+                index = s.find_first_of(delim, last);
+            }
+            if (index - last > 0) {
+                result.push_back(s.substr(last, index - last));
+            }
+            return result;
+        }
+        
+    private:
 
         struct [[eosio::table]] deposit {
             uint64_t id;
+            uint64_t user_id;
+            std::string bus_type;
             eosio::name owner;
             eosio::name code;
             asset balance;
@@ -76,33 +92,16 @@ namespace tptpdeposit {
 
             uint64_t primary_key() const { return id; }
 
-            EOSLIB_SERIALIZE(deposit, (id)(owner)(code)(balance)(timestamp)(hash)
+            EOSLIB_SERIALIZE(deposit, (id)(user_id)(bus_type)(owner)(code)(balance)(timestamp)(hash)
             )
         };
 
         typedef eosio::multi_index<"deposit"_n, deposit> deposit_table;
 
-        // code is token contract account, then scope is account
-        struct [[eosio::table, eosio::contract("eosio.token")]] account {
-            asset balance;
-
-            uint64_t primary_key() const { return balance.symbol.code().raw(); }
-        };
-
-        typedef eosio::multi_index<"accounts"_n, account> accounts_table;
-
         //充值
         void _dodeposit(eosio::name account, eosio::name code, asset balance, string memo);
 
     private:
-        static std::vector <std::string> &
-        split(const std::string &s, const std::string delim, std::vector <std::string> &result);
-
-        static constexpr eosio::name active_permission{"active"_n};
-
-    private:
-        uint32_t delay_sec = 1;
-
         deposit_table _deposit;
     };
 }

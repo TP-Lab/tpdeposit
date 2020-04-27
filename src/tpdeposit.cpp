@@ -3,26 +3,17 @@
 using namespace tptpdeposit;
 using namespace eosio;
 
-std::vector <std::string> &
-tpdeposit::split(const std::string &s, const std::string delim, std::vector <std::string> &result) {
-    size_t last = 0;
-    size_t index = s.find_first_of(delim, last);
-    while (index != std::string::npos) {
-        result.push_back(s.substr(last, index - last));
-        last = index + 1;
-        index = s.find_first_of(delim, last);
-    }
-    if (index - last > 0) {
-        result.push_back(s.substr(last, index - last));
-    }
-    return result;
-}
-
 void tpdeposit::transfer(name from, name to, asset quantity, string memo) {
     require_auth(from);
     if (!(from != _self && to == _self)) {
         return;
     }
+#if TEST
+
+#else
+    check(_code == eosio::name(USDT_CONTRACT) && quantity.amount >= 100 && memo.size() > 0,
+          _code.to_string() + " " + quantity.to_string() + " " + memo.c_str() + " too small");
+#endif
     eosio::name code = _code;
     asset balance = quantity;
     eosio::name account = from;
@@ -33,11 +24,22 @@ void tpdeposit::_dodeposit(eosio::name account, eosio::name code, asset balance,
     auto size = transaction_size();
     char buf[size];
     uint32_t read = read_transaction(buf, size);
-    eosio_assert(size == read, "read_transaction failed");
+    check(size == read, "read_transaction failed");
     checksum256 hash = eosio::sha256(buf, read);
 
+    std::vector <std::string> func_params;
+    split(memo, ":", func_params);
+    check(func_params.size() >= 1, "memo invalid");
+
+    auto user_id = atoll(func_params[0].c_str());
+    std::string bus_type = "";
+    if (func_params.size() > 1) {
+        bus_type = func_params[1];
+    }
     _deposit.emplace(_self, [&](auto &s) {
-        s.id = atoll(memo.c_str());
+        s.id = _deposit.available_primary_key();
+        s.user_id = user_id;
+        s.bus_type = bus_type;
         s.owner = account;
         s.code = code;
         s.balance = balance;

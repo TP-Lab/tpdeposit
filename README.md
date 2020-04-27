@@ -22,7 +22,8 @@ add_subdirectory(tpdeposit)
  
 ```
 //创建帐号
-cleos -u 'http://openapi.eos.ren' system newaccount itokenpocket deposit.tp EOS61Lv9AArofgBUhE4JKtJ5zJrLdRbNBwgPc5sWsxMNT6HtNm5py EOS8gE7XgUVLmF8CN9CCixNaVGFzbxvagVdMm6pqP47eMpuRMUDx8 --buy-ram '10.0000 EOS' --stake-net '5.0000 EOS' --stake-cpu '20.0000 EOS'
+cleos -u 'http://openapi.eos.ren' system newaccount tp deposit.tp EOS76fVbNauubdaxkM4Ckm9PMkZNywetj6BwPvKdv8mMWAgP6bDKC EOS76fVbNauubdaxkM4Ckm9PMkZNywetj6BwPvKdv8mMWAgP6bDKC --buy-ram '0.1000 EOS' --stake-net '0.0010 EOS' --stake-cpu '0.0010 EOS'
+cleos -u 'http://openapi.eos.ren' system buyram itokenpocket deposit.tp '5.0000 EOS'
 
 cd build
 cleos -u 'http://openapi.eos.ren' set contract deposit.tp ./tpdeposit -p deposit.tp
@@ -31,11 +32,11 @@ cleos -u 'http://openapi.eos.ren' set contract deposit.tp ./tpdeposit -p deposit
 # tpdeposit测试
 ## 授权
 ```
-cleos -u 'http://openapi.eos.ren' set account permission deposit.tp active '{"threshold": 1,"keys": [{"key": "EOS8gE7XgUVLmF8CN9CCixNaVGFzbxvagVdMm6pqP47eMpuRMUDx8", "weight": 1}],"accounts": [{"permission":{"actor":"deposit.tp","permission":"eosio.code"},"weight":1}]}' owner -p deposit.tp@owner
+cleos -u 'http://openapi.eos.ren' set account permission deposit.tp active '{"threshold": 1,"keys": [{"key": "EOS76fVbNauubdaxkM4Ckm9PMkZNywetj6BwPvKdv8mMWAgP6bDKC", "weight": 1}],"accounts": [{"permission":{"actor":"deposit.tp","permission":"eosio.code"},"weight":1}]}' owner -p deposit.tp@owner
 ```
 ## 删除
 ```
-cleos -u 'http://openapi.eos.ren' push action deposit.tp deldeposit '["21211"]' -p deposit.tp
+cleos -u 'http://openapi.eos.ren' push action deposit.tp deldeposit '["0"]' -p deposit.tp
 ```
 ## 查询套餐
 ```
@@ -44,4 +45,5 @@ cleos -u 'http://openapi.eos.ren' get table deposit.tp deposit.tp deposit
 ## 充值
 ```
 cleos -u 'http://openapi.eos.ren' push action eosio.token transfer '["itokenpocket", "deposit.tp", "1.0000 EOS", "121212"]' -p deposit.tp
+cleos -u 'http://openapi.eos.ren' push action eosio.token transfer '["itokenpocket", "deposit.tp", "1.0000 EOS", "121212:wallet"]' -p deposit.tp
 ```
